@@ -29,8 +29,8 @@ export IMAGE_PROJECT="ubuntu-os-cloud"
 export IMAGE_FAMILY="ubuntu-2204-lts"
 export DISK_SIZE="50GB"
 export DISK_TYPE="pd-ssd"
-export VM_PREFIX="cilium-lab-kbr"
-export LAB_TAG="cilium-lab-kbr"
+export VM_PREFIX="cilium-lab-kpr"
+export LAB_TAG="cilium-lab"
 export TAGS="http-server,https-server,${LAB_TAG}"
 
 # 動態產生 VM 名稱陣列
@@ -108,7 +108,7 @@ echo "✅ 防火牆規則檢查完成。"
 
 # --- 步驟 2: 產生要在 VM 上執行的安裝腳本 ---
 print_header "步驟 2: 產生 VM 內部安裝腳本..."
-cat << 'EOF' > install_on_vm.sh
+cat << 'EOF' > install_on_vm_kpr.sh
 #!/bin/bash
 set -ex
 
@@ -217,7 +217,7 @@ echo "--- [VM內部] 安裝 Cilium ---"
 CONTROLLER_IP=$(kubectl get node -o wide --no-headers | grep control-plane | awk '{print $6}')
 
 cilium install \
-  --version=1.18.1 \
+  --version=1.17.6 \
   --set k8sServiceHost=$CONTROLLER_IP \
   --set k8sServicePort=6443 \
   --set routingMode=native \
@@ -233,6 +233,7 @@ cilium install \
   --set hubble.relay.enabled=true \
   --set envoy.prometheus.enabled=true \
   --set hubble.metrics.enableOpenMetrics=true \
+  --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}" \
   --set cluster.name=cilium-no-kubeproxy \
   --set loadBalancer.mode=hybrid \
   --set debug.enabled=true
@@ -323,10 +324,10 @@ for vm_name in "${VM_NAMES[@]}"; do
     done
     
     echo "將安裝腳本複製到 $vm_name..."
-    gcloud compute scp install_on_vm.sh "$vm_name":~/ --zone=$ZONE
+    gcloud compute scp install_on_vm_kpr.sh "$vm_name":~/ --zone=$ZONE
 
     echo "在 $vm_name 上遠端執行安裝腳本 (這可能需要 15-20 分鐘)..."
-    gcloud compute ssh "$vm_name" --zone="$ZONE" --command="bash install_on_vm.sh"
+    gcloud compute ssh "$vm_name" --zone="$ZONE" --command="bash install_on_vm_kpr.sh"
     
     echo "✅ VM $vm_name 部署完成"
 done
@@ -515,4 +516,4 @@ echo " 🎉 所有腳本執行完畢！"
 echo "======================================================================"
 
 # 清理暫存檔案
-rm -f install_on_vm.sh
+rm -f install_on_vm_kpr.sh
