@@ -255,9 +255,8 @@ VM_IP=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/netw
 
 # 直接轉發到VM的外部可訪問端口
 kubectl port-forward -n kube-system svc/hubble-ui 30012:80 --address=0.0.0.0 &
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 30090:9090 --address=0.0.0.0 &
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 30030:80 --address=0.0.0.0 &
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-alertmanager 30093:9093 --address=0.0.0.0 &
+kubectl port-forward -n cilium-monitoring svc/prometheus 30090:9090 --address=0.0.0.0 &
+kubectl port-forward -n cilium-monitoring svc/grafana 30030:3000 --address=0.0.0.0 &
 
 sleep 3
 
