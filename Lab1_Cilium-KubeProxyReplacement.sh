@@ -24,7 +24,7 @@ set -e
 export PROJECT_ID=$(gcloud config get-value project)
 export REGION="asia-east1"
 export ZONE="asia-east1-a"
-export MACHINE_TYPE="e2-standard-4"
+export MACHINE_TYPE="c2-standard-4"
 export IMAGE_PROJECT="ubuntu-os-cloud"
 export IMAGE_FAMILY="ubuntu-2204-lts"
 export DISK_SIZE="50GB"
